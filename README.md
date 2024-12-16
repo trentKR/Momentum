@@ -7,4 +7,4 @@ Features of the Website:
     Analytics 
         Measure "momentum" aka streak, get one rest day. if more than one rest day, break streak
 
-    Cpnfigure My Gym
+    Configure My Gym
