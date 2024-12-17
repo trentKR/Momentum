@@ -8,3 +8,5 @@ Features of the Website:
         Measure "momentum" aka streak, get one rest day. if more than one rest day, break streak
 
     Configure My Gym
+
+sqlite database: momentum.db
