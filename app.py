@@ -15,24 +15,6 @@ Session(app)
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///momentum.db")
 
-def query_db(query, *args):
-    try:
-        sqliteConnection = sqlite3.connect("momentum.db")
-        cursor = sqliteConnection.cursor()
-        
-        cursor.execute(query, args)
-        results = cursor.fetchall()
-        cursor.close()
-        
-        return results
-
-    except sqlite3.Error as error:
-        print('Error occurred - ', error)
-    
-    finally:
-        if sqliteConnection:
-            sqliteConnection.close()
-            print('SQLite Connection closed')
 
 @app.after_request
 def after_request(response):
