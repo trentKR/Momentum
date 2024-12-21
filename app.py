@@ -150,18 +150,11 @@ def coach():
     return render_template("coach.html")
 
 
-@app.route("/bio", methods=["GET", "POST"])
+@app.route("/profile", methods=["GET", "POST"])
 @login_required
 def bio():
     """bio"""
-    return render_template("bio.html")
-
-
-@app.route("/target", methods=["GET", "POST"])
-@login_required
-def target():
-    """Target"""
-    return render_template("target.html")
+    return render_template("profile.html")
 
 
 @app.route("/gym", methods=["GET", "POST"])
