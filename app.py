@@ -9,6 +9,7 @@ from helpers import login_required
 app = Flask(__name__)
 
 app.config["SESSION_PERMANENT"] = False
+app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
@@ -122,17 +123,38 @@ def logout():
     return redirect("/")
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
     """Landing page"""
-    return render_template("index.html", methods=["GET", "POST"])
+    return render_template("index.html")
 
 
-@app.route("/post")
+@app.route("/post", methods=["GET", "POST"])
 @login_required
 def post():
-    """Progress"""
+    """Post a new workout"""
+
+    user_id = int(session["user_id"])
+
+    if request.method == "POST":
+        date = request.form.get("date")
+        title = request.form.get("title")
+        description = request.form.get("description")
+        file = request.files['image']
+        
+        if file.filename == '':
+            file_path = ''
+        
+        else:
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            file.save(file_path)
+            
+        # Insert data into the database
+        print(session["user_id"], date, title, description, file_path)
+        db.execute("INSERT INTO workouts (user_id, date, title, description, image) VALUES (?, ?, ?, ?, ?)", user_id, date, title, description, file_path)            
+        return render_template("team.html")
+
     return render_template("post.html")
 
 
@@ -154,6 +176,7 @@ def coach():
 @login_required
 def profile():
     """profile"""
+
     # set user to current session
     user = session["user_id"]
 
@@ -162,8 +185,6 @@ def profile():
 
     # render profile page
     return render_template("profile.html", username=username)
-
-
 
 
 @app.route("/gym", methods=["GET", "POST"])

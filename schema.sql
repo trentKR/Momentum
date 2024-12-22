@@ -1,5 +1,14 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
     username TEXT NOT NULL, 
     hash TEXT NOT NULL
 ); 
+
+CREATE TABLE IF NOT EXISTS workouts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    user_id INTEGER REFERENCES users(id),
+    date DATE,
+    title TEXT,
+    description TEXT,
+    image TEXT
+);
