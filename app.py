@@ -129,11 +129,11 @@ def index():
     return render_template("index.html", methods=["GET", "POST"])
 
 
-@app.route("/progress")
+@app.route("/post")
 @login_required
-def progress():
+def post():
     """Progress"""
-    return render_template("progress.html")
+    return render_template("post.html")
 
 
 @app.route("/team", methods=["GET", "POST"])
@@ -152,9 +152,18 @@ def coach():
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
-def bio():
-    """bio"""
-    return render_template("profile.html")
+def profile():
+    """profile"""
+    # set user to current session
+    user = session["user_id"]
+
+    # retrieve user's username
+    username = db.execute("SELECT username FROM users WHERE id = (?)", user)[0]["username"]
+
+    # render profile page
+    return render_template("profile.html", username=username)
+
+
 
 
 @app.route("/gym", methods=["GET", "POST"])
