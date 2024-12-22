@@ -12,3 +12,17 @@ CREATE TABLE IF NOT EXISTS workouts (
     description TEXT,
     image TEXT
 );
+
+CREATE TABLE IF NOT EXISTS teams (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL, 
+    join_code TEXT NOT NULL,
+    creation_date DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+CREATE TABLE IF NOT EXISTS memberships (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    team_id INTEGER REFERENCES teams(id), 
+    user_id INTEGER REFERENCES users(id),
+    join_date DATE NOT NULL DEFAULT CURRENT_DATE
+);

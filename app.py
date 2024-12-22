@@ -135,26 +135,32 @@ def index():
 def post():
     """Post a new workout"""
 
-    user_id = int(session["user_id"])
+    # set user for current session
+    user = session["user_id"]
 
+    # if POST method
     if request.method == "POST":
+
+        # Get user input
         date = request.form.get("date")
         title = request.form.get("title")
         description = request.form.get("description")
         file = request.files['image']
         
+        # If no image uploaded
         if file.filename == '':
             file_path = ''
         
+        # If image is uploaded
         else:
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(file_path)
             
         # Insert data into the database
-        print(session["user_id"], date, title, description, file_path)
-        db.execute("INSERT INTO workouts (user_id, date, title, description, image) VALUES (?, ?, ?, ?, ?)", user_id, date, title, description, file_path)            
+        db.execute("INSERT INTO workouts (user_id, date, title, description, image) VALUES (?, ?, ?, ?, ?)", user, date, title, description, file_path)            
         return render_template("team.html")
-
+    
+    # If GET method
     return render_template("post.html")
 
 
@@ -177,7 +183,7 @@ def coach():
 def profile():
     """profile"""
 
-    # set user to current session
+    # set user for current session
     user = session["user_id"]
 
     # retrieve user's username
