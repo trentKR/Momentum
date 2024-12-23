@@ -1,3 +1,7 @@
+TODO:
+- make navbar sticky
+
+
 Features of the Website:
 
     Profile tab
