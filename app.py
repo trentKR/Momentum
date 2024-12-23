@@ -189,8 +189,11 @@ def profile():
     # retrieve user's username
     username = db.execute("SELECT username FROM users WHERE id = (?)", user)[0]["username"]
 
+    # retrieve user's workouts
+    workouts = db.execute("SELECT * FROM workouts WHERE user_id = (?)", user)
+
     # render profile page
-    return render_template("profile.html", username=username)
+    return render_template("profile.html", username=username, workouts=workouts)
 
 
 @app.route("/gym", methods=["GET", "POST"])
