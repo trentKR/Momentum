@@ -32,7 +32,7 @@
                         </div>
                         <p class="left-align">{{ workout.description }}</p>
                         {% if workout.image %}
-                            <img src="{{ url_for('static', filename=workout.image) }}" class="img-fluid">
+                            <img src="{{ workout.image }}" class="img-fluid">
                         {% endif %}
                     </div>
                 </div>

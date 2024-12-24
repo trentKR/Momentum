@@ -1,8 +1,45 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Momentum | Team 
+    Momentum
 {% endblock %}
 
 {% block main %}
+
+    <style>   
+        .left-align {
+            text-align: left;
+        }
+        
+    </style>
+
+    <div class="sticky-header">
+        <h1>My Team</h1>
+        <h3>Check out your activity below:</h3>
+        <br></br>
+    </div>
+
+    <!-- iteratively display workouts -->
+    {% for workout in workouts %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p class="left-align">{{ workout.username }}</p>
+                        <div class="d-flex justify-content-between">
+                            <h5>{{ workout.title }}</h5>
+                            <h5>{{ workout.date }}</h5>
+                        </div>
+                        <p class="left-align">{{ workout.description }}</p>
+                        {% if workout.image %}
+                            <img src="{{ workout.image }}" class="img-fluid">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
 {% endblock %}

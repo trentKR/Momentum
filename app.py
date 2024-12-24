@@ -147,18 +147,20 @@ def post():
         description = request.form.get("description")
         file = request.files['image']
         
-        # If no image uploaded
-        if file.filename == '':
-            file_path = ''
-        
-        # If image is uploaded
-        else:
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        # If an image was uploaded
+        if file.filename != '':
+            file_path = os.path.join('static', 'uploads', file.filename)
+            if not os.path.exists(os.path.dirname(file_path)):
+                os.makedirs(os.path.dirname(file_path))
             file.save(file_path)
+        
+        # If no image was uploaded    
+        else:
+            file_path = ''
             
         # Insert data into the database
         db.execute("INSERT INTO workouts (user_id, date, title, description, image) VALUES (?, ?, ?, ?, ?)", user, date, title, description, file_path)            
-        return render_template("team.html")
+        return render_template("profile.html")
     
     # If GET method
     return render_template("post.html")
@@ -168,7 +170,15 @@ def post():
 @login_required
 def team():
     """Team"""
-    return render_template("team.html")
+
+    # set user for current session
+    user = session["user_id"]
+
+    # retrieve user's workouts
+    workouts = db.execute("SELECT * FROM workouts JOIN users ON users.id = workouts.user_id ORDER BY workouts.date DESC, workouts.id DESC")
+
+    # render profile page
+    return render_template("team.html", workouts=workouts)
 
 
 @app.route("/coach", methods=["GET", "POST"])
@@ -190,7 +200,7 @@ def profile():
     username = db.execute("SELECT username FROM users WHERE id = (?)", user)[0]["username"]
 
     # retrieve user's workouts
-    workouts = db.execute("SELECT * FROM workouts WHERE user_id = (?)", user)
+    workouts = db.execute("SELECT * FROM workouts WHERE user_id = (?) ORDER BY date DESC", user)
 
     # render profile page
     return render_template("profile.html", username=username, workouts=workouts)
