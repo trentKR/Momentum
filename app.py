@@ -1,5 +1,10 @@
 import os
-import sqlite3
+import io
+import base64
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+
 from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
@@ -160,7 +165,7 @@ def post():
             
         # Insert data into the database
         db.execute("INSERT INTO workouts (user_id, date, title, description, image) VALUES (?, ?, ?, ?, ?)", user, date, title, description, file_path)            
-        return render_template("profile.html")
+        return render_template("progress.html")
     
     # If GET method
     return render_template("post.html")
@@ -177,21 +182,21 @@ def team():
     # retrieve user's workouts
     workouts = db.execute("SELECT * FROM workouts JOIN users ON users.id = workouts.user_id ORDER BY workouts.date DESC, workouts.id DESC")
 
-    # render profile page
+    # render team page
     return render_template("team.html", workouts=workouts)
 
 
-@app.route("/coach", methods=["GET", "POST"])
+@app.route("/account", methods=["GET", "POST"])
 @login_required
-def coach():
-    """Coach"""
-    return render_template("coach.html")
+def account():
+    """Account"""
+    return render_template("account.html")
 
 
-@app.route("/profile", methods=["GET", "POST"])
+@app.route("/progress", methods=["GET", "POST"])
 @login_required
-def profile():
-    """profile"""
+def progress():
+    """progress"""
 
     # set user for current session
     user = session["user_id"]
@@ -199,15 +204,48 @@ def profile():
     # retrieve user's username
     username = db.execute("SELECT username FROM users WHERE id = (?)", user)[0]["username"]
 
-    # retrieve user's workouts
-    workouts = db.execute("SELECT * FROM workouts WHERE user_id = (?) ORDER BY date DESC", user)
+    # retrieve user's workouts to populate data 
+    workouts = db.execute("SELECT id, date FROM workouts WHERE user_id = (?) ORDER BY date DESC", user)
 
-    # render profile page
-    return render_template("profile.html", username=username, workouts=workouts)
+    # create plot
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    data = {'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0, 'Jul': 0, 'Aug': 0, 'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0}
+    
+    # iterate over workouts table
+    for workout in workouts:
+        
+        # get the date of workout
+        date_str = workout["date"]
+        
+        # parse the date string
+        year, month_int, day = date_str.split("-")
+        
+        # month abbrev
+        month_abb = months[int(month_int) - 1]
+        
+        # populate data dictionary
+        data[month_abb] += 1  
 
+    y = [data[month] for month in months]
 
-@app.route("/gym", methods=["GET", "POST"])
-@login_required
-def gym():
-    """Configure Gyms"""
-    return render_template("gym.html")
+    plt.bar(months, y, color='blue')
+
+    # add counts above the bars
+    for i, value in enumerate(y):
+        if value != 0:
+            plt.text(i, value, str(value), ha='center')
+
+    plt.xticks(ticks=range(0, 12), labels=months)
+    plt.yticks(ticks=[], label=workouts)
+    plt.ylim(0, 35)
+    plt.title(f"Workouts in 2025")
+
+    # save the plot to a BytesIO object
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    string = base64.b64encode(buf.read())
+    uri = 'data:image/png;base64,' + string.decode('utf-8')
+
+    # render progress page
+    return render_template("progress.html", username=username, uri=uri, workouts=workouts)
