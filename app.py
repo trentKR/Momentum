@@ -201,7 +201,7 @@ def progress():
     # set user for current session
     user = session["user_id"]
 
-    # retrieve user's username
+    # retrieve user's username for header
     username = db.execute("SELECT username FROM users WHERE id = (?)", user)[0]["username"]
 
     # retrieve user's workouts to populate data 
@@ -240,7 +240,7 @@ def progress():
     plt.ylim(0, 35)
     plt.title(f"Workouts in 2025")
 
-    # save the plot to a BytesIO object
+    # save the plot to a BytesIO object so that do not have to save as an image
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)

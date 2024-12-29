@@ -13,27 +13,37 @@
         
     </style>
 
-    <div class="sticky-header">
+<div>
+    <div>
+        <br></br>
         <h1>My Team</h1>
-        <h3>Check out your activity below:</h3>
+        <h3>Check out your team's activity below:</h3>
         <br></br>
     </div>
 
     <!-- iteratively display workouts -->
     {% for workout in workouts %}
-    <div class="container">
+    <div class="container mt-4">
         <div class="row justify-content-center">
-            <div class="col-6">
-                <div class="card mb-3">
+            <div class="col-md-8">
+                <div class="card p-4 mb-3 shadow-sm">
                     <div class="card-body">
-                        <p class="left-align">{{ workout.username }}</p>
-                        <div class="d-flex justify-content-between">
-                            <h5>{{ workout.title }}</h5>
-                            <h5>{{ workout.date }}</h5>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <h6 class="card-title text-muted text-start">{{ workout.username }}</h6>
+                            </div>
                         </div>
-                        <p class="left-align">{{ workout.description }}</p>
+                        <div class="row mb-3">
+                            <div class="col-9">
+                                <h5 class="card-subtitle text-start">{{ workout.title }}</h5>
+                            </div>
+                            <div class="col-3 text-end">
+                                <h5 class="card-subtitle">{{ workout.date }}</h5>
+                            </div>
+                        </div>
+                        <p class="card-text text-start">{{ workout.description }}</p>
                         {% if workout.image %}
-                            <img src="{{ workout.image }}" class="img-fluid">
+                            <img src="{{ workout.image }}" class="img-fluid rounded">
                         {% endif %}
                     </div>
                 </div>
@@ -41,5 +51,5 @@
         </div>
     </div>
     {% endfor %}
-
+</div>
 {% endblock %}
