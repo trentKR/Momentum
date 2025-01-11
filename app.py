@@ -4,9 +4,8 @@ import base64
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
-
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import login_required
@@ -35,42 +34,40 @@ def after_request(response):
 def register():
     """Register user"""
 
+    # User reached route via POST
     if request.method == "POST":
 
         try:
             username = request.form.get("username")
             password = request.form.get("password")
+            confirmation = request.form.get("confirmation")
 
-            # Ensure username was submitted
-            if not username:
-                return render_template("error.html")
-
-            # Ensure password was submitted
-            elif not password:
-                return render_template("error.html")
+            # Ensure username and password submitted
+            if not username or not password or not confirmation:
+                return render_template("register.html", message="Empty textbox")
 
             # Ensure password confirmation matches intial password entry
-            elif password != request.form.get("confirmation"):
-                return render_template("error.html")
+            elif password != confirmation:
+                return render_template("register.html", message="Passwords do not match")
 
             # Try to insert information into database. UNIQUE INDEX on users.username
-            db.execute("INSERT INTO users (username, hash) VALUES (?, ?)",
-                       username, generate_password_hash(password))
+            db.execute(
+                "INSERT INTO users (username, hash) VALUES (?, ?)", username, generate_password_hash(password)
+            )
 
             # Log in with session
-            user_id = db.execute("SELECT id FROM users WHERE username = ?", username)
-            session["user_id"] = user_id[0]["id"]
+            user_id = db.execute(
+                "SELECT id FROM users WHERE username = ?", username
+            )
 
+            # Session
+            session["user_id"] = user_id[0]["id"]
             return redirect("/")
 
-        except ValueError as e:
-
-            # Log the error
-            print(f"Error: {e}")
-
-            # Inform the user
-            return render_template("error.html")
-
+        except Exception:
+            return render_template("register.html", message="Username already exists")
+    
+    # User reached route via GET
     return render_template("register.html")
 
 
@@ -81,39 +78,39 @@ def login():
     # Forget any user_id
     session.clear()
 
-    # User reached route via POST (as by submitting a form via POST)
+    # User reached route via POST
     if request.method == "POST":
-        # Ensure username was submitted
-        if not request.form.get("username"):
-            return render_template("error.html")
 
-        # Ensure password was submitted
-        elif not request.form.get("password"):
-            return render_template("error.html")
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        # Ensure username and password submitted
+        if not username or not password:
+            return render_template("login.html", message="Empty textbox")
 
         # Query database for username
         rows = db.execute(
-            "SELECT * FROM users WHERE username = ?", request.form.get("username")
+            "SELECT * FROM users WHERE username = ?", username
         )
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(
-            rows[0]["hash"], request.form.get("password")
+            rows[0]["hash"], password
         ):
-            return render_template("error.html")
+            return render_template("login.html", message="Invalid username and password combination")
 
         try:
             # Remember which user has logged in
             session["user_id"] = rows[0]["id"]
-        except TypeError:
-            return render_template("error.html")
+
+        except TypeError as e:
+            return render_template("login.html", message=f"ERROR: {e}")
 
         # Redirect user to home page
         return redirect("/")
 
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("login.html")
+    # User reached route via GET
+    return render_template("login.html")
 
 
 @app.route("/logout")
@@ -132,22 +129,32 @@ def logout():
 @login_required
 def index():
     """Landing page"""
-    return render_template("index.html")
 
+    # Set user for current session
+    user = session["user_id"]
+
+    # Get the username
+    username = db.execute(
+        "SELECT username FROM users WHERE id = (?)", user
+    )[0]["username"]
+    
+    return render_template("index.html", username=username)
+    
 
 @app.route("/post", methods=["GET", "POST"])
 @login_required
 def post():
     """Post a new workout"""
 
-    # set user for current session
+    # Current user
     user = session["user_id"]
 
-    # if POST method
+    # User reached route via POST
     if request.method == "POST":
 
         # Get user input
         date = request.form.get("date")
+        year, month, day = date.split("-")
         title = request.form.get("title")
         description = request.form.get("description")
         file = request.files['image']
@@ -163,11 +170,14 @@ def post():
         else:
             file_path = ''
             
-        # Insert data into the database
-        db.execute("INSERT INTO workouts (user_id, date, title, description, image) VALUES (?, ?, ?, ?, ?)", user, date, title, description, file_path)            
-        return render_template("progress.html")
+        # Insert data into the workouts table
+        db.execute(
+            "INSERT INTO workouts (user_id, date, year, month, day, title, description, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", user, date, year, month, day, title, description, file_path
+        )            
+
+        return redirect("/progress")
     
-    # If GET method
+    # User reached route via GET
     return render_template("post.html")
 
 
@@ -177,20 +187,114 @@ def team():
     """Team"""
 
     # set user for current session
-    user = session["user_id"]
+    user = session["user_id"] 
 
-    # retrieve user's workouts
-    workouts = db.execute("SELECT * FROM workouts JOIN users ON users.id = workouts.user_id ORDER BY workouts.date DESC, workouts.id DESC")
+    # If a user is on a team:
+    team_query = db.execute(
+        "SELECT memberships.team_id, teams.name FROM memberships JOIN teams ON teams.id = memberships.team_id  WHERE memberships.user_id = (?)", user
+    )
 
-    # render team page
-    return render_template("team.html", workouts=workouts)
+    if len(team_query) == 1:
 
+        team_name = team_query[0]["name"]
 
-@app.route("/account", methods=["GET", "POST"])
+        team_id = team_query[0]["team_id"]
+        # retrieve team workouts
+        workouts = db.execute(
+            "SELECT * FROM workouts JOIN users ON workouts.user_id = users.id WHERE users.id IN (SELECT user_id FROM memberships WHERE team_id = ?) ORDER BY workouts.date DESC, workouts.id DESC", team_id)
+        # render team page
+        return render_template("team.html", workouts=workouts, team_name=team_name)
+    
+    else:
+        # allow a user to Join a team through a form 
+        return render_template("no_team.html")
+    
+
+@app.route("/no_team", methods=["GET", "POST"])
 @login_required
-def account():
-    """Account"""
-    return render_template("account.html")
+def no_team():
+    """no team"""
+
+    return render_template("no_team.html")
+
+
+@app.route("/join", methods=["GET", "POST"])
+@login_required
+def join():
+    """join"""
+
+    # Current user
+    user = session["user_id"] 
+
+    # User reached route via POST
+    if request.method == "POST":
+
+        try: 
+            team_name = request.form.get("team name")
+            join_code = request.form.get("join code")
+
+            team_query = db.execute(
+                "SELECT id, join_code FROM teams WHERE name = ?", team_name
+            )
+
+            # Team and join code combination doesn't exist
+            if len(team_query) == 0:
+                return render_template("join.html", message="Invalid team name and join code combination")
+
+            query_join_code = team_query[0]["join_code"]
+            query_team_id = team_query[0]["id"]
+            
+            print(f"Inserting team_id: {query_team_id}, user_id: {user}")
+
+            # if join code valid, add membership
+            if query_join_code == join_code:    
+                db.execute(
+                    "INSERT INTO memberships (team_id, user_id) VALUES (?, ?)", query_team_id, user
+                )
+
+            else:
+                return render_template("join.html", message="Invalid join code")
+            
+            return redirect("/team")
+        
+        except Exception as e: 
+            print(f"Error: {e}")
+            return render_template("error.html")
+    # User reached route via GET
+    return render_template("join.html")
+
+
+
+@app.route("/create", methods=["GET", "POST"])
+@login_required
+def create():
+    """create"""
+    # User reached route via POST
+    if request.method == "POST":
+        try:
+            team_name = request.form.get("team name")
+            join_code = request.form.get("join code")
+            confirm_code = request.form.get("confirm") 
+
+            if team_name is None or join_code is None:
+                return render_template("create.html", message="Empty textbox")
+
+            if join_code == confirm_code:
+                db.execute(
+                    "INSERT INTO teams (name, join_code) VALUES (?, ?)", team_name, join_code
+                )
+            
+            else:
+                return render_template("create.html", message="Join codes do not match")
+
+            return redirect("/join")
+
+        except ValueError as e:
+            print(f"Error: {e}")
+            return render_template("create.html", message="Team name already exists")
+    # User reached route via GET
+    return render_template("create.html")
+
 
 
 @app.route("/progress", methods=["GET", "POST"])
@@ -202,50 +306,23 @@ def progress():
     user = session["user_id"]
 
     # retrieve user's username for header
-    username = db.execute("SELECT username FROM users WHERE id = (?)", user)[0]["username"]
+    username = db.execute(
+        "SELECT username FROM users WHERE id = (?)", user
+    )[0]["username"]
 
-    # retrieve user's workouts to populate data 
-    workouts = db.execute("SELECT id, date FROM workouts WHERE user_id = (?) ORDER BY date DESC", user)
+    # Prepare data
+    month_counts = db.execute("SELECT month, count(id) AS count FROM workouts WHERE user_id = (?) AND year = 2025 GROUP BY user_id, month", user)
+    month_list = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    data = {month: 0 for month in month_list}
 
-    # create plot
-    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    data = {'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0, 'Jul': 0, 'Aug': 0, 'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0}
+    for count in month_counts:
+        abbrev = month_list[int(count["month"]) - 1]
+        data[abbrev] = count["count"]
     
-    # iterate over workouts table
-    for workout in workouts:
-        
-        # get the date of workout
-        date_str = workout["date"]
-        
-        # parse the date string
-        year, month_int, day = date_str.split("-")
-        
-        # month abbrev
-        month_abb = months[int(month_int) - 1]
-        
-        # populate data dictionary
-        data[month_abb] += 1  
+    # table
+    workouts = db.execute(
+        "SELECT * FROM workouts WHERE user_id = (?) ORDER BY date DESC, id DESC", user
+    )
 
-    y = [data[month] for month in months]
-
-    plt.bar(months, y, color='blue')
-
-    # add counts above the bars
-    for i, value in enumerate(y):
-        if value != 0:
-            plt.text(i, value, str(value), ha='center')
-
-    plt.xticks(ticks=range(0, 12), labels=months)
-    plt.yticks(ticks=[], label=workouts)
-    plt.ylim(0, 35)
-    plt.title(f"Workouts in 2025")
-
-    # save the plot to a BytesIO object so that do not have to save as an image
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    string = base64.b64encode(buf.read())
-    uri = 'data:image/png;base64,' + string.decode('utf-8')
-
-    # render progress page
-    return render_template("progress.html", username=username, uri=uri, workouts=workouts)
+    # Send data to frontend
+    return render_template("progress.html", data=data, username=username, workouts=workouts, month_list=month_list)

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-    username TEXT NOT NULL, 
+    username TEXT UNIQUE NOT NULL, 
     hash TEXT NOT NULL
 ); 
 
@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS workouts (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     user_id INTEGER REFERENCES users(id),
     date DATE,
+    year INT NOT NULL,
+    month INT NOT NULL,
+    day INT NOT NULL,
     title TEXT,
     description TEXT,
     image TEXT
@@ -15,14 +18,14 @@ CREATE TABLE IF NOT EXISTS workouts (
 
 CREATE TABLE IF NOT EXISTS teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    name TEXT NOT NULL, 
+    name TEXT UNIQUE NOT NULL, 
     join_code TEXT NOT NULL,
-    creation_date DATE NOT NULL DEFAULT CURRENT_DATE
+    creation_date DATE DEFAULT CURRENT_DATE
 );
 
 CREATE TABLE IF NOT EXISTS memberships (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     team_id INTEGER REFERENCES teams(id), 
     user_id INTEGER REFERENCES users(id),
-    join_date DATE NOT NULL DEFAULT CURRENT_DATE
+    join_date DATE DEFAULT CURRENT_DATE
 );

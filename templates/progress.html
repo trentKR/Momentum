@@ -10,25 +10,86 @@
         .left-align {
             text-align: left;
         }
-    </style>
 
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #343a40; /* Same color as thead-dark */
+            z-index: 1;
+        }
+    </style>
     <div>
         <br></br>
-        <h1>Welcome, {{ username }}</h1>
-        <h3>Check out your activity below:</h3>
+        <h1>{{ username }}</h1>
+        <h6>Self Progress</h6>
         <br></br>
     </div>
 
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-8">
+            <div class="col-10">
                 <div class="card mb-3">
-                    <!-- Matplotlib chart -->
-                    <img src="{{ uri }}" class="img-fluid" style="width: 100%;">
+                    <!-- Chart.js -->
+                    <canvas id="myChart" class="img-fluid" style="width: 100%;"></canvas>
                 </div>
             </div>
         </div>
     </div>
-   
 
+    <div id="table" class="container">
+        <div class="row justify-content-center">
+            <div class="col-10">
+                <div style="height: 400px; overflow: auto;">
+                    <table class="table table-striped table-bordered">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th style="width: 34%;">Date</th>
+                                <th style="width: 66%;">Title</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for workout in workouts %}
+                            <tr>
+                                <td>{{ workout.date }}</td>
+                                <td style="text-align: left;">{{ workout.title }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var data = {{ data | tojson | safe }};
+        var monthList = {{ month_list | tojson | safe }};
+        console.log(data);
+    
+        var labels = monthList;
+        var values = labels.map(month => data[month]);
+    
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Workouts in 2025',
+                    data: values,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 35
+                    }
+                }
+            }
+        });
+    </script>
 {% endblock %}

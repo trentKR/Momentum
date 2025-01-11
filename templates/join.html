@@ -1,0 +1,27 @@
+
+{% extends "layout.html" %}
+
+{% block title %}
+    Momentum 
+{% endblock %}
+
+{% block main %}
+<div>
+    <br>
+    <br>
+    <h4>Join Team</h4>
+    <form action="/join" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="team name" placeholder="Team Name" type="text">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="join code" placeholder="Join Code" type="text">
+        </div>
+        <button class="btn btn-primary" type="submit">Join</button>
+    </form>
+    <div>
+        <br>
+        <p style="color: brown;"> {{ message }}</p>
+    </div>
+</div>
+{% endblock %}

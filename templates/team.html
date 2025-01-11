@@ -6,39 +6,38 @@
 
 {% block main %}
 
-    <style>   
-        .left-align {
-            text-align: left;
-        }
-        
-    </style>
+<style>   
+    .left-align {
+        text-align: left;
+    }
+
+</style>
 
 <div>
-    <div>
+    <div id="top">
         <br></br>
-        <h1>My Team</h1>
-        <h3>Check out your team's activity below:</h3>
+        <h1>{{ team_name }}</h1>
+        <h6>Team Activity</h6>
         <br></br>
     </div>
 
-    <!-- iteratively display workouts -->
-    {% for workout in workouts %}
-    <div class="container mt-4">
+    <div class="container mt-4 scrollable-container" style="height: 600px; overflow: auto;">
         <div class="row justify-content-center">
             <div class="col-md-8">
+                {% for workout in workouts %}
                 <div class="card p-4 mb-3 shadow-sm">
                     <div class="card-body">
                         <div class="row mb-3">
-                            <div class="col-12">
+                            <div class="col-6">
                                 <h6 class="card-title text-muted text-start">{{ workout.username }}</h6>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="card-title text-muted text-end">{{ workout.date }}</h6>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-9">
                                 <h5 class="card-subtitle text-start">{{ workout.title }}</h5>
-                            </div>
-                            <div class="col-3 text-end">
-                                <h5 class="card-subtitle">{{ workout.date }}</h5>
                             </div>
                         </div>
                         <p class="card-text text-start">{{ workout.description }}</p>
@@ -47,9 +46,10 @@
                         {% endif %}
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-    {% endfor %}
 </div>
+
 {% endblock %}
