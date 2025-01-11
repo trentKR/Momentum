@@ -152,28 +152,36 @@ def post():
     # User reached route via POST
     if request.method == "POST":
 
-        # Get user input
-        date = request.form.get("date")
-        year, month, day = date.split("-")
-        title = request.form.get("title")
-        description = request.form.get("description")
-        file = request.files['image']
-        
-        # If an image was uploaded
-        if file.filename != '':
-            file_path = os.path.join('static', 'uploads', file.filename)
-            if not os.path.exists(os.path.dirname(file_path)):
-                os.makedirs(os.path.dirname(file_path))
-            file.save(file_path)
-        
-        # If no image was uploaded    
-        else:
-            file_path = ''
+        try:
+            # Get user input
+            date = request.form.get("date")
+            year, month, day = date.split("-")
+            title = request.form.get("title")
+            description = request.form.get("description")
+            file = request.files['image']
             
-        # Insert data into the workouts table
-        db.execute(
-            "INSERT INTO workouts (user_id, date, year, month, day, title, description, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", user, date, year, month, day, title, description, file_path
-        )            
+            # If an image was uploaded
+            if file.filename != '':
+                file_path = os.path.join('static', 'uploads', file.filename)
+                if not os.path.exists(os.path.dirname(file_path)):
+                    os.makedirs(os.path.dirname(file_path))
+                file.save(file_path)
+            
+            # If no image was uploaded    
+            else:
+                file_path = ''
+            
+            # Title must have value
+            if title == "":
+                raise ValueError
+            
+            # Insert data into the workouts table
+            db.execute(
+                "INSERT INTO workouts (user_id, date, year, month, day, title, description, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", user, date, year, month, day, title.strip(" "), description, file_path
+            )  
+
+        except Exception:        
+            return render_template("post.html", message="Title and Date Required")
 
         return redirect("/progress")
     

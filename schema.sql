@@ -7,11 +7,11 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS workouts (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     user_id INTEGER REFERENCES users(id),
-    date DATE,
+    date DATE NOT NULL,
     year INT NOT NULL,
     month INT NOT NULL,
     day INT NOT NULL,
-    title TEXT,
+    title TEXT NOT NULL,
     description TEXT,
     image TEXT
 );

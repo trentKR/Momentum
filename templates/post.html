@@ -13,7 +13,7 @@
     <!-- For laptops -->
     <div class="d-none d-md-block">
         <div class="row justify-content-center">
-            <div class="col-8">
+            <div class="col-10">
                 <div class="card p-4 mb-3">
                     <form action="/post" method="post" enctype="multipart/form-data">
                         <div class="row">
@@ -40,7 +40,7 @@
     <!-- For phones -->
     <div class="d-block d-md-none">
         <div class="row justify-content-center">
-            <div class="col-8">
+            <div class="col-10">
                 <div class="card p-4 mb-3">
                     <form action="/post" method="post" enctype="multipart/form-data">
                         <div class="mb-3">
@@ -60,7 +60,10 @@
                 </div>
             </div>
         </div>
+    </div>
 
+    <div>
+        <p style="color: red">{{ message }}</p>
     </div>
 
 </div>
