@@ -77,4 +77,4 @@ This application has limitations that I aim to implement outside of the scope of
     Momentum = SUM(Workout History) / (Lookback Days * COUNT(Users))
 
 The goal of this feature would be to motivate behavior, just as streaks encourage users to engage in DuoLingo lessons. I believe the optimal value for the lookback period would be between 1 and 2 weeks, long enough to be meaningful, but also short enough to be forgiving. 
->>>>>>> a9898ab (Finished README)
+
